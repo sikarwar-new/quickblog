@@ -84,14 +84,20 @@ export const AuthProvider = ({ children }) => {
   };
   // Listen for authentication state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setUser(user);
+    
+    const handleUserProfile = async () => {
       await fetchUserProfile(user);
       setLoading(false);
-    });
+    };
 
-    return unsubscribe;
-  }, []);
+    handleUserProfile();
+  });
+
+  return unsubscribe;
+}, []);
+
 
   const value = {
     user,
