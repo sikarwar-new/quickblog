@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { blogService } from '../../services/blogService';
 import toast from 'react-hot-toast';
 import { assets } from '../../assets/assets';
+import { useAuth } from '../../context/AuthContext';
 
 const ListBlog = () => {
+    const { user } = useAuth();
 
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -20,7 +22,7 @@ const ListBlog = () => {
 
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this blog?')) {
-            const result = await blogService.deleteBlog(id);
+            const result = await blogService.deleteBlog(id, user.uid);
             if (result.success) {
                 toast.success('Blog deleted successfully');
                 fetchBlogs(); // Refresh the list
@@ -31,7 +33,7 @@ const ListBlog = () => {
     };
 
     const handleTogglePublish = async (id, currentStatus) => {
-        const result = await blogService.updateBlog(id, { isPublished: !currentStatus });
+        const result = await blogService.updateBlog(id, { isPublished: !currentStatus }, user.uid);
         if (result.success) {
             toast.success(`Blog ${!currentStatus ? 'published' : 'unpublished'} successfully`);
             fetchBlogs(); // Refresh the list

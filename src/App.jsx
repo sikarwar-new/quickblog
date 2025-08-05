@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
+import AdminRoute from './components/AdminRoute';
 
 // Pages
 import Home from './pages/Home';
@@ -15,6 +16,7 @@ import DashBoard from './pages/admin/DashBoard';
 import AddBlog from './pages/admin/AddBlog';
 import ListBlog from './pages/admin/ListBlog';
 import Comments from './pages/admin/Comments';
+import UserManagement from './pages/admin/UserManagement';
 
 function App() {
   return (
@@ -38,16 +40,17 @@ function App() {
             </PublicRoute>
           } />
           
-          {/* Protected Admin Routes */}
+          {/* Admin Only Routes */}
           <Route path="/admin" element={
-            <ProtectedRoute>
+            <AdminRoute>
               <Layout />
-            </ProtectedRoute>
+            </AdminRoute>
           }>
             <Route index element={<DashBoard />} />
             <Route path="addblog" element={<AddBlog />} />
             <Route path="listblog" element={<ListBlog />} />
             <Route path="comments" element={<Comments />} />
+            <Route path="users" element={<UserManagement />} />
           </Route>
         </Routes>
       </div>

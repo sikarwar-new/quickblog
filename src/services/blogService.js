@@ -12,14 +12,22 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { userService } from './userService';
 
 // Blog CRUD operations
 export const blogService = {
   // Create a new blog
-  async createBlog(blogData) {
+  async createBlog(blogData, userId) {
     try {
+      // Check if user is admin
+      const isAdmin = await userService.isAdmin(userId);
+      if (!isAdmin) {
+        return { success: false, error: 'Unauthorized: Admin access required' };
+      }
+
       const docRef = await addDoc(collection(db, 'blogs'), {
         ...blogData,
+        authorId: userId,
         timestamp: serverTimestamp(),
         createdAt: new Date().toISOString()
       });
@@ -76,8 +84,14 @@ export const blogService = {
   },
 
   // Delete blog
-  async deleteBlog(id) {
+  async deleteBlog(id, userId) {
     try {
+      // Check if user is admin
+      const isAdmin = await userService.isAdmin(userId);
+      if (!isAdmin) {
+        return { success: false, error: 'Unauthorized: Admin access required' };
+      }
+
       await deleteDoc(doc(db, 'blogs', id));
       return { success: true };
     } catch (error) {
@@ -87,8 +101,14 @@ export const blogService = {
   },
 
   // Update blog
-  async updateBlog(id, blogData) {
+  async updateBlog(id, blogData, userId) {
     try {
+      // Check if user is admin
+      const isAdmin = await userService.isAdmin(userId);
+      if (!isAdmin) {
+        return { success: false, error: 'Unauthorized: Admin access required' };
+      }
+
       const docRef = doc(db, 'blogs', id);
       await updateDoc(docRef, {
         ...blogData,

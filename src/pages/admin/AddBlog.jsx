@@ -52,7 +52,7 @@ const AddBlog = () => {
             isPublished
         };
 
-        const result = await blogService.createBlog(blogData);
+        const result = await blogService.createBlog(blogData, user.uid);
         
         if (result.success) {
             toast.success('Blog created successfully!');

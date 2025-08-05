@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection - users can read/write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Allow admins to read all user profiles
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Blogs collection
+    match /blogs/{blogId} {
+      // Anyone can read published blogs
+      allow read: if resource.data.isPublished == true;
+      
+      // Authenticated users can read all blogs (for admin panel)
+      allow read: if request.auth != null;
+      
+      // Only admins can create, update, or delete blogs
+      allow create, update, delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      
+      // Comments subcollection
+      match /comments/{commentId} {
+        // Anyone can read comments
+        allow read: if true;
+        
+        // Authenticated users can create comments
+        allow create: if request.auth != null && 
+          request.auth.uid == resource.data.userId;
+        
+        // Users can update/delete their own comments, admins can do anything
+        allow update, delete: if request.auth != null && 
+          (request.auth.uid == resource.data.userId || 
+           (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+      }
+    }
+  }
+}
