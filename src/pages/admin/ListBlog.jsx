@@ -27,10 +27,15 @@ const ListBlog = () => {
                 toast.success('Blog deleted successfully');
                 fetchBlogs(); // Refresh the list
             } else {
-                toast.error('Failed to delete blog');
+                toast.error(result.error || 'Failed to delete blog');
             }
         }
-    };
+                                    <div className='font-medium text-gray-900 truncate'>
+                                        {blog.title}
+                                        {blog.authorId === user.uid && (
+                                            <span className='ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>Mine</span>
+                                        )}
+                                    </div>
 
     const handleTogglePublish = async (id, currentStatus) => {
         const result = await blogService.updateBlog(id, { isPublished: !currentStatus }, user.uid);
@@ -38,7 +43,7 @@ const ListBlog = () => {
             toast.success(`Blog ${!currentStatus ? 'published' : 'unpublished'} successfully`);
             fetchBlogs(); // Refresh the list
         } else {
-            toast.error('Failed to update blog status');
+            toast.error(result.error || 'Failed to update blog status');
         }
     };
     useEffect(() => {
@@ -51,20 +56,24 @@ const ListBlog = () => {
             <h1>All Blogs</h1>
 
             {loading ? (
-                <div className='flex justify-center items-center h-64'>
-                    <div className='animate-spin rounded-full h-16 w-16 border-4 border-t-primary border-gray-200'></div>
-                </div>
-            ) : (
-                <div className='relative h-4/5 mt-4 max-w-6xl overflow-x-auto shadow rounded-lg scrollbar-hide bg-white'>
-                    <table className='w-full text-sm text-gray-500'>
-                        <thead className='text-xs text-gray-600 text-left uppercase bg-gray-50'>
-                            <tr>
-                                <th scope='col' className='px-4 py-3'>#</th>
-                                <th scope='col' className='px-4 py-3'>Image</th>
-                                <th scope='col' className='px-4 py-3'>Title</th>
-                                <th scope='col' className='px-4 py-3'>Category</th>
-                                <th scope='col' className='px-4 py-3 max-sm:hidden'>Date</th>
-                                <th scope='col' className='px-4 py-3 max-sm:hidden'>Status</th>
+                                    {blog.authorId === user.uid ? (
+                                        <div className='flex items-center gap-2'>
+                                            <button
+                                                onClick={() => handleTogglePublish(blog.id, blog.isPublished)}
+                                                className='text-xs px-3 py-1 border rounded hover:bg-gray-50 transition-all'
+                                            >
+                                                {blog.isPublished ? 'Unpublish' : 'Publish'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(blog.id)}
+                                                className='text-red-600 hover:text-red-800 transition-all'
+                                            >
+                                                <img src={assets.cross_icon} alt="Delete" className='w-4 h-4' />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <span className='text-xs text-gray-400'>View Only</span>
+                                    )}
                                 <th scope='col' className='px-4 py-3'>Actions</th>
                             </tr>
                         </thead>

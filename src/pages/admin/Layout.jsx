@@ -5,7 +5,7 @@ import Sidebar from '../../components/admin/Sidebar'
 import { useAuth } from '../../context/AuthContext'
 
 const Layout = () => {
-    const { logout, user, userProfile } = useAuth()
+    const { logout, user } = useAuth()
 
     const navigate = useNavigate()
 
@@ -22,7 +22,7 @@ const Layout = () => {
             <div className=' flex items-center gap-4'>
                 <div className='text-right'>
                     <span className=' text-sm text-gray-600'>Welcome, {user?.email}</span>
-                    <div className='text-xs text-primary font-medium'>Administrator</div>
+                    <div className='text-xs text-primary font-medium'>User Dashboard</div>
                 </div>
                 <button className='text-sm px-8 py-2 bg-primary text-white rounded-full cursor-pointer hover:bg-primary/90 transition-all' onClick={handleLogout}>Logout</button>
             </div>

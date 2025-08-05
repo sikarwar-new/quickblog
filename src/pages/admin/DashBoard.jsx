@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { assets } from '../../assets/assets';
 import { blogService } from '../../services/blogService';
+import { useAuth } from '../../context/AuthContext';
 
 const DashBoard = () => {
+    const { user } = useAuth();
     const [stats, setStats] = useState({
         blogs: 0,
         published: 0,
         drafts: 0,
+        myBlogs: 0,
     });
     const [recentBlogs, setRecentBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -15,16 +18,20 @@ const DashBoard = () => {
         const result = await blogService.getBlogs();
         if (result.success) {
             const blogs = result.blogs;
+            const myBlogs = blogs.filter(blog => blog.authorId === user.uid);
             const published = blogs.filter(blog => blog.isPublished).length;
             const drafts = blogs.filter(blog => !blog.isPublished).length;
             
             setStats({
                 blogs: blogs.length,
                 published,
-                drafts
+                drafts,
+                myBlogs: myBlogs.length
             });
             
-            setRecentBlogs(blogs.slice(0, 5));
+            // Show user's own blogs first, then others
+            const sortedBlogs = [...myBlogs, ...blogs.filter(blog => blog.authorId !== user.uid)];
+            setRecentBlogs(sortedBlogs.slice(0, 5));
         }
         setLoading(false);
     };
@@ -48,24 +55,24 @@ const DashBoard = () => {
                         <div className='flex items-center gap-4 bg-white p-4 min-w-58 rounded shadow cursor-pointer hover:scale-105 transition-all'>
                             <img src={assets.dashboard_icon_1} alt="" />
                             <div>
-                                <p className='text-xl font-semibold text-gray-600'>{stats.blogs}</p>
-                                <p className='text-gray-400 font-light'>Total Blogs</p>
+                                <p className='text-xl font-semibold text-gray-600'>{stats.myBlogs}</p>
+                                <p className='text-gray-400 font-light'>My Blogs</p>
                             </div>
                         </div>
 
                         <div className='flex items-center gap-4 bg-white p-4 min-w-58 rounded shadow cursor-pointer hover:scale-105 transition-all'>
                             <img src={assets.dashboard_icon_2} alt="" />
                             <div>
-                                <p className='text-xl font-semibold text-gray-600'>{stats.published}</p>
-                                <p className='text-gray-400 font-light'>Published</p>
+                                <p className='text-xl font-semibold text-gray-600'>{stats.blogs}</p>
+                                <p className='text-gray-400 font-light'>Total Blogs</p>
                             </div>
                         </div>
 
                         <div className='flex items-center gap-4 bg-white p-4 min-w-58 rounded shadow cursor-pointer hover:scale-105 transition-all'>
                             <img src={assets.dashboard_icon_3} alt="" />
                             <div>
-                                <p className='text-xl font-semibold text-gray-600'>{stats.drafts}</p>
-                                <p className='text-gray-400 font-light'>Drafts</p>
+                                <p className='text-xl font-semibold text-gray-600'>{stats.published}</p>
+                                <p className='text-gray-400 font-light'>Published</p>
                             </div>
                         </div>
                     </div>
@@ -101,7 +108,12 @@ const DashBoard = () => {
                                                     />
                                                 </td>
                                                 <td className='px-4 py-4 max-w-xs'>
-                                                    <div className='font-medium text-gray-900 truncate'>{blog.title}</div>
+                                                    <div className='font-medium text-gray-900 truncate'>
+                                                        {blog.title}
+                                                        {blog.authorId === user.uid && (
+                                                            <span className='ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>Mine</span>
+                                                        )}
+                                                    </div>
                                                     <div className='text-gray-500 text-xs truncate'>{blog.subTitle}</div>
                                                 </td>
                                                 <td className='px-4 py-4'>

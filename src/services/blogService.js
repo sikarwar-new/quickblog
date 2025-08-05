@@ -19,12 +19,6 @@ export const blogService = {
   // Create a new blog
   async createBlog(blogData, userId) {
     try {
-      // Check if user is admin
-      const isAdmin = await userService.isAdmin(userId);
-      if (!isAdmin) {
-        return { success: false, error: 'Unauthorized: Admin access required' };
-      }
-
       const docRef = await addDoc(collection(db, 'blogs'), {
         ...blogData,
         authorId: userId,
@@ -86,10 +80,18 @@ export const blogService = {
   // Delete blog
   async deleteBlog(id, userId) {
     try {
-      // Check if user is admin
+      // Get the blog to check ownership
+      const blogResult = await this.getBlogById(id);
+      if (!blogResult.success) {
+        return { success: false, error: 'Blog not found' };
+      }
+
+      // Check if user is the author or admin
       const isAdmin = await userService.isAdmin(userId);
-      if (!isAdmin) {
-        return { success: false, error: 'Unauthorized: Admin access required' };
+      const isAuthor = blogResult.blog.authorId === userId;
+      
+      if (!isAuthor && !isAdmin) {
+        return { success: false, error: 'Unauthorized: You can only delete your own blogs' };
       }
 
       await deleteDoc(doc(db, 'blogs', id));
@@ -103,12 +105,19 @@ export const blogService = {
   // Update blog
   async updateBlog(id, blogData, userId) {
     try {
-      // Check if user is admin
-      const isAdmin = await userService.isAdmin(userId);
-      if (!isAdmin) {
-        return { success: false, error: 'Unauthorized: Admin access required' };
+      // Get the blog to check ownership
+      const blogResult = await this.getBlogById(id);
+      if (!blogResult.success) {
+        return { success: false, error: 'Blog not found' };
+      }
       }
 
+      // Check if user is the author or admin
+      const isAdmin = await userService.isAdmin(userId);
+      const isAuthor = blogResult.blog.authorId === userId;
+      
+      if (!isAuthor && !isAdmin) {
+        return { success: false, error: 'Unauthorized: You can only edit your own blogs' };
       const docRef = doc(db, 'blogs', id);
       await updateDoc(docRef, {
         ...blogData,

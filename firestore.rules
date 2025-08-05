@@ -6,24 +6,20 @@ service cloud.firestore {
     // Users collection - users can read/write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
-      // Allow admins to read all user profiles
-      allow read: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
     // Blogs collection
     match /blogs/{blogId} {
-      // Anyone can read published blogs
-      allow read: if resource.data.isPublished == true;
+      // Anyone can read all blogs (both published and unpublished)
+      allow read: if true;
       
-      // Authenticated users can read all blogs (for admin panel)
-      allow read: if request.auth != null;
+      // Authenticated users can create blogs
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.authorId;
       
-      // Only admins can create, update, or delete blogs
-      allow create, update, delete: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Only the author can update or delete their own blogs
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == resource.data.authorId;
       
       // Comments subcollection
       match /comments/{commentId} {
@@ -32,13 +28,12 @@ service cloud.firestore {
         
         // Authenticated users can create comments
         allow create: if request.auth != null && 
-          request.auth.uid == resource.data.userId;
+          request.auth.uid == request.resource.data.userId;
         
-        // Users can update/delete their own comments, admins can do anything
+        // Users can update/delete their own comments, blog authors can delete any comment on their blog
         allow update, delete: if request.auth != null && 
           (request.auth.uid == resource.data.userId || 
-           (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+           request.auth.uid == get(/databases/$(database)/documents/blogs/$(blogId)).data.authorId);
       }
     }
   }
